@@ -1,6 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:thesis_driver_app/authentication/login_screen.dart';
 import 'package:thesis_driver_app/methods/common_methods.dart';
+
+import '../pages/home_page.dart';
+import '../widgets/loading_dialog.dart';
 
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
@@ -17,8 +22,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   // TextEditingController passwordTextEditingController = TextEditingController();
   CommonMethods common = CommonMethods();
 
-  checkIfNetworkIsAvailable()
-  {
+  checkIfNetworkIsAvailable() {
     common.checkConnectivity(context);
 
     signUpFormValidation();
@@ -32,8 +36,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
           padding: const EdgeInsets.all(10),
           child: Column(
             children: [
-              Image.asset("assets/images/logo.png",
-              height: 300,
+              Image.asset(
+                "assets/images/logo.png",
+                height: 300,
               ),
 
               const Text(
@@ -119,8 +124,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       height: 22,
                     ),
                     ElevatedButton(
-                      onPressed: ()
-                      {
+                      onPressed: () {
                         checkIfNetworkIsAvailable();
                       },
                       style: ElevatedButton.styleFrom(
@@ -152,38 +156,51 @@ class _SignUpScreenState extends State<SignUpScreen> {
       ),
     );
   }
+
   void signUpFormValidation() {
-    if(common.userNameTextEditingController.text.trim().length < 3){
-      common.displaySnackbar("Your username must be at least 4 or more characters", context);
-    }
-    else if(common.userPhoneTextEditingController.text.trim().length != 11){
+    if (common.userNameTextEditingController.text.trim().length < 3) {
+      common.displaySnackbar(
+          "Your username must be at least 4 or more characters", context);
+    } else if (common.userPhoneTextEditingController.text.trim().length != 11) {
       common.displaySnackbar("Your phone number length must be 11 ", context);
-    }
-    else if(!common.emailTextEditingController.text.contains("@")){
+    } else if (!common.emailTextEditingController.text.contains("@")) {
       common.displaySnackbar("Please write a valid email", context);
-    }
-    else if(common.passwordTextEditingController.text.length < 5){
-      common.displaySnackbar("Your password must be at least 6 or more characters", context);
-    }
-    else{
+    } else if (common.passwordTextEditingController.text.length < 5) {
+      common.displaySnackbar(
+          "Your password must be at least 6 or more characters", context);
+    } else {
       //registerNewUser();
     }
   }
 
-  /*registerNewUser() async{
+  registerNewUser() async {
     showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (BuildContext context) => LoadingDialog(messageText: "Registering your account")
-    );
-    final User? userFirebase = (
-        await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: emailTextEditingController.text.trim(),
-          password: passwordTextEditingController.text.trim(),
-        ).catchError((errorMessage){
-          cMethods.displaySnackbar(errorMessage.toString(), context);
-        })
-    ).user;
-    if(!context.mounted) return;
-    Navigator.pop(context);*/
+        builder: (BuildContext context) =>
+            LoadingDialog(messageText: "Registering your account"));
+    final User? userFirebase = (await FirebaseAuth.instance
+        .createUserWithEmailAndPassword(
+      email: common.emailTextEditingController.text.trim(),
+      password: common.passwordTextEditingController.text.trim(),
+    )
+        .catchError((errorMessage) {
+      common.displaySnackbar(errorMessage.toString(), context);
+    }))
+        .user;
+    if (!context.mounted) return;
+    Navigator.pop(context);
+
+    DatabaseReference usersRef = FirebaseDatabase.instance.ref().child("users").child(userFirebase!.uid);
+    Map userDataMap = {
+      "name" : common.userNameTextEditingController.text.trim(),
+      "email" : common.emailTextEditingController.text.trim(),
+      "phone" : common.userPhoneTextEditingController.text.trim(),
+      "id" : userFirebase.uid,
+      "blockStatus" : "no",
+    };
+
+    usersRef.set(userDataMap);
+    Navigator.push(context, MaterialPageRoute(builder: (c) => HomePage()));
+  }
 }
