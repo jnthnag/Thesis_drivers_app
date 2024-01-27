@@ -1,6 +1,12 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:thesis_driver_app/authentication/signup_screen.dart';
 import 'package:thesis_driver_app/methods/common_methods.dart';
+
+import '../global/global_var.dart';
+import '../pages/home_page.dart';
+import '../widgets/loading_dialog.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,6 +17,66 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   CommonMethods common = CommonMethods();
+
+  checkIfNetworkIsAvailable() {
+    common.checkConnectivity(context);
+
+    signInFormValidation();
+  }
+
+  void signInFormValidation() {
+    if (!common.emailTextEditingController.text.contains("@"))
+    {
+      common.displaySnackbar("Please write a valid email", context);
+    }
+    else if (common.passwordTextEditingController.text.length < 5)
+    {
+      common.displaySnackbar("Your password must be at least 6 or more characters", context);
+    }
+    else {
+      signInUser();
+    }
+  }
+
+  signInUser() async {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) => LoadingDialog(messageText: "Logging in your account"),
+    );
+
+    final User? userFirebase = (
+        await FirebaseAuth.instance.signInWithEmailAndPassword(
+            email: common.emailTextEditingController.text.trim(),
+            password: common.passwordTextEditingController.text.trim()
+        ).catchError((errorMessage){
+          common.displaySnackbar(errorMessage.toString(), context);
+        })
+    ).user;
+
+    if(!context.mounted) return;
+    Navigator.pop(context);
+
+    if(userFirebase != null){
+      DatabaseReference usersRef = FirebaseDatabase.instance.ref().child("users").child(userFirebase.uid);
+      usersRef.once().then((snap){
+        if(snap.snapshot.value != null){
+          if((snap.snapshot.value as Map)["blockStatus"] == "no"){
+            userName = (snap.snapshot.value as Map)["name"];
+            Navigator.push(context, MaterialPageRoute(builder: (c) => HomePage()));
+          } else {
+            FirebaseAuth.instance.signOut();
+            common.displaySnackbar("Your account is blocked. Contact admin", context);
+          }
+        } else{
+          FirebaseAuth.instance.signOut();
+          common.displaySnackbar("Your account does not exist", context);
+        }
+      });
+
+
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,13 +137,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     ElevatedButton(
                       onPressed: () {
-                        //checkIfNetworkIsAvailable();
+                        checkIfNetworkIsAvailable();
                       },
                       style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.purple,
                           padding: const EdgeInsets.symmetric(
                               horizontal: 80, vertical: 10)),
-                      child: const Text("Sign Up"),
+                      child: const Text("Log in"),
                     ),
                   ],
                 ),
