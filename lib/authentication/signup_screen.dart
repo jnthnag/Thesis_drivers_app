@@ -137,7 +137,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 ),
               ),
 
-              // Text Button
+              // Sub text button for existing users
               TextButton(
                 onPressed: () {
                   Navigator.push(context,
@@ -169,7 +169,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       common.displaySnackbar(
           "Your password must be at least 6 or more characters", context);
     } else {
-      //registerNewUser();
+      registerNewUser();
     }
   }
 
@@ -184,9 +184,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
       email: common.emailTextEditingController.text.trim(),
       password: common.passwordTextEditingController.text.trim(),
     )
-        .catchError((errorMessage) {
-      common.displaySnackbar(errorMessage.toString(), context);
-    }))
+        .catchError((errorMessage) => common.displaySnackbar(errorMessage.toString(), context)))
         .user;
     if (!context.mounted) return;
     Navigator.pop(context);
@@ -201,6 +199,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     };
 
     usersRef.set(userDataMap);
-    Navigator.push(context, MaterialPageRoute(builder: (c) => HomePage()));
+    Navigator.push(context, MaterialPageRoute(builder: (c) => const HomePage()));
   }
 }
