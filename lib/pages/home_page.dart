@@ -1,6 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:thesis_driver_app/global/global_var.dart';
 
@@ -17,6 +20,27 @@ class _HomePageState extends State<HomePage>
   final Completer<GoogleMapController> googleMapCompleterController = Completer<GoogleMapController>();
   GoogleMapController? controllerGoogleMap;
 
+  void updateMapTheme(GoogleMapController controller)
+  {
+    // defining the path of the Json file theme that we want to apply and assign it to "value"
+    getJsonFileFromThemes("themes/night_theme.json").then ((value) => setGoogleMapStyle(value, controller));
+  }
+
+  Future<String> getJsonFileFromThemes(String mapStylePath) async
+  {
+    ByteData byteData = await rootBundle.load(mapStylePath);
+    var list = byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes);
+
+    return utf8.decode(list);
+  }
+
+  setGoogleMapStyle(String googleMapStyle,GoogleMapController controller)
+  {
+    // after passing the decoded value of the json file
+    // to this function use setMapStyle to apply the theme
+    controller.setMapStyle(googleMapStyle);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,6 +54,7 @@ class _HomePageState extends State<HomePage>
             onMapCreated: (GoogleMapController mapController)
             {
               controllerGoogleMap = mapController;
+              updateMapTheme(controllerGoogleMap!);
 
               googleMapCompleterController.complete(controllerGoogleMap);
             },
