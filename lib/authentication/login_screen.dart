@@ -121,6 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     TextField(
                       controller: common.passwordTextEditingController,
                       keyboardType: TextInputType.text,
+                      obscureText: true,
                       decoration: const InputDecoration(
                         labelText: "User Password",
                         labelStyle: TextStyle(
