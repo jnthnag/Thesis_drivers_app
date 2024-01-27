@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:thesis_driver_app/authentication/login_screen.dart';
 import 'package:thesis_driver_app/authentication/signup_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -6,13 +7,21 @@ import 'package:thesis_driver_app/firebase_options.dart';
 
 
 Future<void> main()async {
-
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
+  await Permission.locationWhenInUse.isDenied.then((valueOfPermission)
+  {
+    if(valueOfPermission)
+      {
+        Permission.locationWhenInUse.request();
+      }
+  });
 
   runApp(const MyApp());
 }
+
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -27,7 +36,7 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: Colors.black87,
 
       ),
-      home: SignUpScreen(),
+      home: LoginScreen(),
     );
   }
 }

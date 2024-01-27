@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:thesis_driver_app/global/global_var.dart';
 
@@ -19,6 +20,7 @@ class _HomePageState extends State<HomePage>
 {
   final Completer<GoogleMapController> googleMapCompleterController = Completer<GoogleMapController>();
   GoogleMapController? controllerGoogleMap;
+  Position? currentPostionOfUser;
 
   void updateMapTheme(GoogleMapController controller)
   {
@@ -41,6 +43,24 @@ class _HomePageState extends State<HomePage>
     controller.setMapStyle(googleMapStyle);
   }
 
+  getCurrentLiveLocationOfUser()async
+  {
+    Position positionOfUser = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.bestForNavigation);
+    currentPostionOfUser = positionOfUser;
+
+    LatLng LatLngUserPosition = LatLng(currentPostionOfUser!.latitude, currentPostionOfUser!.longitude);
+
+    CameraPosition cameraPosition = CameraPosition(target: LatLngUserPosition, zoom: 15);
+
+    controllerGoogleMap!.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+
+    // await common.convertGeographicCoordinatesIntoHumanReadableAddress(currentPositionOfUser!, context);
+    //
+    // await getUserInfoAndCheckBlockStatus();
+    //
+    // await initializeGeoFireListener();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -57,6 +77,8 @@ class _HomePageState extends State<HomePage>
               updateMapTheme(controllerGoogleMap!);
 
               googleMapCompleterController.complete(controllerGoogleMap);
+
+              getCurrentLiveLocationOfUser();
             },
           )
         ],
