@@ -20,7 +20,7 @@ class _HomePageState extends State<HomePage>
 {
   final Completer<GoogleMapController> googleMapCompleterController = Completer<GoogleMapController>();
   GoogleMapController? controllerGoogleMap;
-  Position? currentPostionOfUser;
+  Position? currentPositionOfUser;
 
   void updateMapTheme(GoogleMapController controller)
   {
@@ -46,9 +46,9 @@ class _HomePageState extends State<HomePage>
   getCurrentLiveLocationOfUser()async
   {
     Position positionOfUser = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.bestForNavigation);
-    currentPostionOfUser = positionOfUser;
+    currentPositionOfUser = positionOfUser;
 
-    LatLng LatLngUserPosition = LatLng(currentPostionOfUser!.latitude, currentPostionOfUser!.longitude);
+    LatLng LatLngUserPosition = LatLng(currentPositionOfUser!.latitude, currentPositionOfUser!.longitude);
 
     CameraPosition cameraPosition = CameraPosition(target: LatLngUserPosition, zoom: 15);
 
